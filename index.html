@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>九千定制-U</title>
+    <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <style>
+    $custom-file-text: (
+      zh: "浏览"
+    );
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-12">
+          <form>
+            <div class="custom-file mt-2 mb-4">
+              <input type="file" name="source_folder" class="custom-file-input" id="desFolder" webkitdirectory directory lang="zh">
+              <label class="custom-file-label" for="desFolder">请选择目标文件夹</label>
+            </div>
+            <div class="custom-file mb-2">
+              <input type="file" name="source_folder" class="custom-file-input" id="sourceFolder" webkitdirectory directory lang="zh">
+              <label class="custom-file-label" for="sourceFolder">请选择源文件夹</label>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <script>
+      // You can also require other files to run in this process
+      window.$ = window.jQuery = require('./node_modules/jquery/dist/jquery.min.js')
+      const { ipcRenderer } = require('electron')
+      const currentWindow = require('electron').remote.getCurrentWindow()
+      let service = require('./service.js')
+      $('#sourceFolder').on('change', function (e) {
+        if ($(this).val() != '') {
+          $('label[for="sourceFolder"]').text(this.files[0].path)
+          ipcRenderer.sendSync('source-folder', this.files[0].path)
+        } else {
+          $('label[for="sourceFolder"]').text('请选择源文件夹')
+          ipcRenderer.sendSync('source-folder', '')
+        }
+      })
+      $('#desFolder').on('change', function (e) {
+        if ($(this).val() != '') {
+          $('label[for="desFolder"]').text(this.files[0].path)
+          ipcRenderer.sendSync('des-folder', this.files[0].path)
+        } else {
+          $('label[for="desFolder"]').text('请选择目标文件夹')
+          ipcRenderer.sendSync('des-folder', '')
+        }
+      })
+      ipcRenderer.on('configs-reply', (event, arg) => {
+        if (arg.value != '') {
+          $('label[for="' + arg.name + '"]').text(arg.value)
+        }
+      })
+      ipcRenderer.send('configs', 'sourceFolder')
+      ipcRenderer.send('configs', 'desFolder')
+      let uploadNotification = null
+      ipcRenderer.on('upload', (event, message) => {
+        service.post('order/desk_upload/saw', message.data).then(function (data) {
+          if (data.code == 10) {
+            currentWindow.loadFile('signin.html')
+          } else if (data.code == 1) {
+            if (Notification.permission == "granted") {
+              uploadNotification = new window.Notification('上传错误', {
+                title: '上传错误',
+                body: data.message
+              })
+            } else if (Notification.permission != "denied") {
+              Notification.requestPermission(function (permission) {
+                uploadNotification = new window.Notification('上传错误', {
+                  title: '上传错误',
+                  body: data.message
+                })
+              })
+            } else {
+              alert(data.message)
+            }
+          } else {
+            ipcRenderer.send('remove-saw-file', message.fileName)
+            if (Notification.permission == "granted") {
+              uploadNotification = new window.Notification('上传成功', {
+                title: '上传成功',
+                body: data.message
+              })
+            } else if (Notification.permission != "denied") {
+              Notification.requestPermission(function (permission) {
+                uploadNotification = new window.Notification('上传成功', {
+                  title: '上传成功',
+                  body: data.message
+                })
+              })
+            } else {
+              alert(data.message)
+            }
+          }
+        })
+      })
+    </script>
+  </body>
+</html>

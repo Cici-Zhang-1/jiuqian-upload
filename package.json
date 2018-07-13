@@ -1,0 +1,28 @@
+{
+  "name": "JQU",
+  "ProductName": "JQU",
+  "version": "1.0.0",
+  "Version": "1.0.0",
+  "FileVersion": "1.0.0",
+  "description": "九千定制管理系统上传软件",
+  "main": "main.js",
+  "scripts": {
+    "test": "electron .",
+    "start": "electron ."
+  },
+  "author": "zhangcc",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "bootstrap": "^4.1.1",
+    "chokidar": "^2.0.4",
+    "encoding": "^0.1.12",
+    "iconv-lite": "^0.4.23",
+    "jquery": "^3.3.1",
+    "popper.js": "^1.14.3"
+  },
+  "devDependencies": {
+    "electron": "^2.0.0",
+    "electron-squirrel-startup": "^1.0.0"
+  }
+}
